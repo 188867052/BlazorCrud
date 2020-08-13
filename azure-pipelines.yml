@@ -33,7 +33,7 @@ steps:
   displayName: Docker build
   inputs:
     command: 'build'
-    Dockerfile: '**/Dockerfile'
+    Dockerfile: '$(Build.SourcesDirectory)/dockerfile'
     arguments: '-t 542153354/blazorcrud:v1.0'
 
 - task: CmdLine@2
