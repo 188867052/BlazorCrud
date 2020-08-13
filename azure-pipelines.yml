@@ -1,29 +1,48 @@
-# ASP.NET Core (.NET Framework)
-# Build and test ASP.NET Core projects targeting the full .NET Framework.
-# Add steps that publish symbols, save build artifacts, and more:
+﻿# ASP.NET Core
+# Build and test ASP.NET Core projects targeting .NET Core.
+# Add steps that run tests, create a NuGet package, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
 - master
 
 pool:
-  vmImage: 'windows-2019'
+  vmImage: 'ubuntu-latest'
 
 variables:
-  buildConfiguration: 'Release'
+  buildConfiguration: 'Debug'
 
 steps:
-- script: dotnet build BlazorCrud.sln --configuration $(buildConfiguration)
-  displayName: 'Building BlazorCrud'
-
-- task: DotNetCoreCLI@2
-  displayName: 'Persisting BlazorCrud Build Artifacts'
+- task: DockerInstaller@0 
+  displayName: Docker Installer 📦
   inputs:
-    command: publish
-    projects: '**/*.csproj'
-    publishWebProjects: false
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-    zipAfterPublish: false
+    dockerVersion: '17.09.0-ce'
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publishing Blazor BlazorCrud Build Artifacts'
+- task: CmdLine@2
+  displayName: Docker login 🎁
+  inputs:
+    script: 'docker login -u 542153354 -p $(DockerPassword)'
+
+- task: CmdLine@2
+  displayName: install sshpass
+  inputs:
+    script: |
+      sudo apt-get install sshpass
+
+- task: Docker@2
+  displayName: Docker build
+  inputs:
+    command: 'build'
+    Dockerfile: '**/Dockerfile'
+    arguments: '-t 542153354/blazorcrud:v1.0'
+
+- task: CmdLine@2
+  displayName: Docker push
+  inputs:
+    script: 'docker push 542153354/blazorcrud:v1.0'
+
+- task: CmdLine@2
+  displayName: deploy to TencentCloud 🚀
+  inputs:
+    script: |
+      sshpass -p "$(TencentCloudPassword)" ssh -o StrictHostKeyChecking=no -t -t ubuntu@$(TencentCloudIP) bash -s < deploy-server.sh
