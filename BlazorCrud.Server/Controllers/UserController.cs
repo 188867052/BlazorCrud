@@ -2,6 +2,7 @@
 using BlazorCrud.Shared.Data;
 using BlazorCrud.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -32,8 +33,9 @@ namespace BlazorCrud.Server.Controllers
         /// Returns a list of paginated users with a default page size of 10.
         /// </summary>
         [HttpGet]
-        public PagedResult<User> GetAll([FromQuery]int page)
+        public PagedResult<User> GetAll([FromQuery] int page)
         {
+            var a = this.HttpContext.Request.GetDisplayUrl();
             int pageSize = 10;
             // Do not send password over webAPI GET
             foreach (User u in _context.Users)
@@ -138,7 +140,7 @@ namespace BlazorCrud.Server.Controllers
         [AllowAnonymous]
         [HttpPost]
         [Route("logon")]
-        public IActionResult LogOn([FromBody]Login login)
+        public IActionResult LogOn([FromBody] Login login)
         {
             // Removed unauthorized default since Blazor can't handle HTTP 403 respons
             // IActionResult response = Unauthorized();
